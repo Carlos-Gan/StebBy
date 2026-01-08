@@ -20,6 +20,9 @@ interface HabitDao {
     @Query("SELECT * FROM sub_habits WHERE habit_id = :habitId")
     suspend fun getSubHabits(habitId: Long): List<SubHabitEntity>
 
+    @Query("SELECT * FROM habits WHERE id = :id LIMIT 1")
+    fun getHabitById(id: Long): Flow<HabitEntity?>
+
     @Update
     suspend fun updateHabit(habit: HabitEntity)
 
