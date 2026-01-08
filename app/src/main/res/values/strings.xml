@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">StepBy</string>
+    <string name="buenosdias">Buenos días</string>
+    <string name="buenastardes">Buenas tardes</string>
+    <string name="buenasnoches">Buenas noches</string>
+
+</resources>
