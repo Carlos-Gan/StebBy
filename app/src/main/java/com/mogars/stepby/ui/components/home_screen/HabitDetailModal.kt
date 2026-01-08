@@ -1,6 +1,5 @@
 package com.mogars.stepby.ui.components.home_screen
 
-import androidx.annotation.ColorRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.mogars.stepby.data.StepByDatabase
@@ -39,7 +36,7 @@ import com.mogars.stepby.ui.models.HabitUiModel
 import com.mogars.stepby.ui.theme.completeColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
@@ -172,11 +169,17 @@ fun HabitDetailModal(
                     val valueFloat = inputValue.toFloatOrNull() ?: habit.currentValue
                     val clampedValue = valueFloat.coerceIn(0f, habit.targetValue)
 
+                    val now = LocalDateTime.now()
+                    val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+
                     // Guardar intensidad solo si llega al objetivo
                     if (clampedValue >= habit.targetValue) {
+
                         val intensity =
                             ((clampedValue / habit.targetValue) * 4).toInt().coerceIn(0, 4)
-                        val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+
+                        val time = now.toLocalTime().format(DateTimeFormatter.ISO_TIME)
+
                         scope.launch(Dispatchers.IO) {
                             StepByDatabase.getDatabase(context)
                                 .habitActivityDao()
@@ -184,14 +187,22 @@ fun HabitDetailModal(
                                     HabitActivityEntity(
                                         habitId = habit.id,
                                         date = today,
+                                        time = time,
                                         intensity = intensity
                                     )
                                 )
+                        }
+                    } else {
+                        scope.launch(Dispatchers.IO) {
+                            StepByDatabase.getDatabase(context)
+                                .habitActivityDao()
+                                .deleteActivitiesForHabitForDay(habit.id, today)
                         }
                     }
 
                     onValueChange(clampedValue)
                     onDismiss()
+
                 }
             ) {
                 Text("Guardar")

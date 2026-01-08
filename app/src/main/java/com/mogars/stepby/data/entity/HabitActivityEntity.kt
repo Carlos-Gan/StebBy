@@ -15,6 +15,7 @@ data class HabitActivityEntity(
     @ColumnInfo(name = "habit_id")
     val habitId: Long,
     val date: String,
+    val time: String,
     val intensity: Int,
     val subHabitIndex: Int? = null
 )

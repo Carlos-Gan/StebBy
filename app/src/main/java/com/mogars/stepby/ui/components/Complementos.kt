@@ -47,6 +47,7 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Check
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -121,7 +122,6 @@ fun GreetingHeader(username: String) {
 }
 
 
-
 // ---------------------- CHECK BUTTON ----------------------
 @Composable
 fun CheckCircleButton(
@@ -151,8 +151,10 @@ fun CheckCircleButton(
                 vibrate(context, 35)
                 onClick()
 
-                val today = java.time.LocalDate.now()
-                    .format(java.time.format.DateTimeFormatter.ISO_DATE)
+                val now = LocalDateTime.now()
+                val date = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+                val time = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+
 
                 scope.launch {
                     val db = StepByDatabase.getDatabase(context)
@@ -162,13 +164,14 @@ fun CheckCircleButton(
                         db.habitActivityDao().insertActivity(
                             HabitActivityEntity(
                                 habitId = habitId,
-                                date = today,
-                                intensity = 4
+                                date = date,
+                                intensity = 4,
+                                time = time
                             )
                         )
                     } else {
                         // Se desmarcó → Borrar actividad
-                        db.habitActivityDao().deleteActivitiesForHabitForDay(habitId, today)
+                        db.habitActivityDao().deleteActivitiesForHabitForDay(habitId, date)
                     }
                 }
             },
@@ -222,7 +225,9 @@ fun SubHabitList(
                                         HabitActivityEntity(
                                             habitId = habitId,
                                             date = today,
-                                            intensity = 4
+                                            intensity = 4,
+                                            time = LocalTime.now()
+                                                .format(DateTimeFormatter.ofPattern("HH:mm"))
                                         )
                                     )
                             }
@@ -258,3 +263,20 @@ fun RoundedField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
     )
 }
+
+// ---------------------- FORMATO A PM Y AM ----------------------
+
+fun formatHourToAmPm(hour: Double): String {
+    val h = hour.toInt()
+    val minutes = ((hour - h) * 60).toInt()
+
+    val amPm = if (h < 12) "AM" else "PM"
+    val hour12 = when {
+        h == 0 -> 12
+        h > 12 -> h - 12
+        else -> h
+    }
+
+    return String.format("%d:%02d %s", hour12, minutes, amPm)
+}
+

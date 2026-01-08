@@ -29,6 +29,7 @@ import compose.icons.fontawesomeicons.solid.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // ---------------------- HOME ----------------------
@@ -121,14 +122,19 @@ fun HomeScreen(
                                     if (habit.currentValue >= habit.targetValue) 0f else habit.targetValue
                                 habits[index] = habit.copy(currentValue = newValue)
 
-                                val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                                val now = LocalDateTime.now()
+                                val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+                                val time = now.toLocalTime()
+                                    .format(DateTimeFormatter.ofPattern("HH:mm"))
+
                                 scope.launch(Dispatchers.IO) {
                                     if (newValue >= habit.targetValue) {
                                         activityDao.insertActivity(
                                             HabitActivityEntity(
                                                 habitId = habit.id,
                                                 date = today,
-                                                intensity = 4
+                                                intensity = 4,
+                                                time = time
                                             )
                                         )
                                     } else {
@@ -204,7 +210,10 @@ fun HomeScreen(
                     val updatedHabit = habits[index].copy(currentValue = newValue)
                     habits[index] = updatedHabit
 
-                    val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                    val now = LocalDateTime.now()
+                    val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+                    val time = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+
 
                     scope.launch(Dispatchers.IO) {
                         try {
@@ -215,7 +224,8 @@ fun HomeScreen(
                                     HabitActivityEntity(
                                         habitId = realHabitId,
                                         date = today,
-                                        intensity = 4
+                                        intensity = 4,
+                                        time = time
                                     )
                                 )
                             } else {
