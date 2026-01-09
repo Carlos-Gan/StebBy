@@ -29,8 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
 import com.mogars.stepby.data.entity.HabitEntity
 import com.mogars.stepby.data.entity.SubHabitEntity
@@ -65,7 +67,7 @@ fun AddHabitScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nuevo hábito") },
+                title = { Text(stringResource(R.string.nuevo_habito)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -125,7 +127,7 @@ fun AddHabitScreen(
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Guardando...")
+                    Text(stringResource(R.string.guardando))
                 } else {
                     Icon(
                         FontAwesomeIcons.Solid.Check,
@@ -133,7 +135,7 @@ fun AddHabitScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Crear hábito")
+                    Text(stringResource(R.string.crear_habito))
                 }
             }
         }
@@ -151,24 +153,24 @@ fun AddHabitScreen(
             RoundedField(
                 value = habitName,
                 onValueChange = { habitName = it },
-                label = "Nombre del hábito"
+                label = stringResource(R.string.nombre_del_habito)
             )
 
             // 🎯 Tipo de objetivo
-            Text("Tipo de hábito", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.tipo_de_habito), style = MaterialTheme.typography.titleMedium)
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 
                 FilterChip(
                     selected = goalType == GoalType.CHECK,
                     onClick = { goalType = GoalType.CHECK },
-                    label = { Text("Completar") }
+                    label = { Text(stringResource(R.string.completar)) }
                 )
 
                 FilterChip(
                     selected = goalType == GoalType.AMOUNT,
                     onClick = { goalType = GoalType.AMOUNT },
-                    label = { Text("Cantidad") }
+                    label = { Text(stringResource(R.string.cantidad)) }
                 )
             }
 
@@ -188,7 +190,7 @@ fun AddHabitScreen(
                                 parts[0] + "." + parts.drop(1).joinToString("")
                             }
                         },
-                        label = "Cantidad",
+                        label = stringResource(R.string.cantidad),
                         modifier = Modifier.weight(1f),
                         keyboardType = KeyboardType.Decimal
                     )
@@ -196,7 +198,7 @@ fun AddHabitScreen(
                     RoundedField(
                         value = unit,
                         onValueChange = { unit = it },
-                        label = "Unidad",
+                        label = stringResource(R.string.unidad),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -207,7 +209,7 @@ fun AddHabitScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "¿Tiene subhábitos?",
+                    text = stringResource(R.string.tiene_subhabitos),
                     modifier = Modifier.weight(1f)
                 )
                 Switch(
@@ -220,7 +222,7 @@ fun AddHabitScreen(
             if (hasSubHabits) {
 
                 Text(
-                    text = "Subhábitos",
+                    text = stringResource(R.string.subhabitos),
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -247,7 +249,7 @@ fun AddHabitScreen(
                                             it[index] = newText
                                         }
                                     },
-                                    label = "Subhábito ${index + 1}",
+                                    label = stringResource(R.string.subhabito, index + 1),
                                     modifier = Modifier.weight(1f)
                                 )
 
@@ -279,7 +281,7 @@ fun AddHabitScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text("Agregar subhábito")
+                                Text(stringResource(R.string.agregar_subhabito))
                             }
                         }
                     }

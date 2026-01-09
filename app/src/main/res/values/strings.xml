@@ -1,7 +1,65 @@
 <resources>
-    <string name="app_name">StepBy</string>
+    <string name="app_name" translatable="false">StepBy</string>
+    <!-- Add Screen -->
+    <string name="nuevo_habito">Nuevo hábito</string>
+    <string name="guardando">Guardando...</string>
+    <string name="crear_habito">Crear hábito</string>
+    <string name="nombre_del_habito">Nombre del hábito</string>
+    <string name="tipo_de_habito">Tipo de hábito</string>
+    <string name="completar">Completar</string>
+    <string name="cantidad">Cantidad</string>
+    <string name="unidad">Unidad</string>
+    <string name="tiene_subhabitos">Tiene subhábitos?</string>
+    <string name="subhabitos">Subhábitos</string>
+    <string name="subhabito">Subhábito %1$d</string>
+    <string name="agregar_subhabito">Agregar subhábito</string>
+
+    <!-- Habit Description Screen -->
+    <string name="habito">Hábito %1$s</string>
+    <string name="eliminar_habito">Eliminar hábito</string>
+    <string name="dialog_eliminar_habito">¿Seguro que quieres eliminar este hábito? Se borrará todo su historial.</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="historial_habito">Historial del hábito</string>
+    <string name="resumen">Resumen</string>
+    <string name="racha_actual">Racha actual</string>
+    <string name="mejor_racha">Mejor racha</string>
+    <string name="completados">Completados</string>
+    <string name="registros">Registros</string>
+    <string name="horarios">Horarios</string>
+    <string name="promedio">Promedio</string>
+    <string name="manana">Mañana</string>
+    <string name="tarde">Tarde</string>
+    <string name="noche">Noche</string>
+    <!-- Home Screen -->
+    <string name="tus_habitos">Tus hábitos</string>
     <string name="buenosdias">Buenos días</string>
     <string name="buenastardes">Buenas tardes</string>
     <string name="buenasnoches">Buenas noches</string>
+    <string name="no_habitos_creados">No tienes hábitos creados.</string>
+    <string name="empieza_crear_nuevo">Empieza por crear uno nuevo.</string>
+    <string name="actividad_total_ultimos_28_dias">Actividad total últimos 28 días</string>
+    <string name="subhabitos_completados">%1$d / %2$d subhábitos completados</string>
+    <string name="marca_tus_subhabitos_completados">Marca tus subhábitos completados:</string>
+    <string name="cuanto_completaste_hoy">Cuánto completaste hoy:</string>
+    <string name="o_ingresa_un_valor_personalizado">O ingresa un valor personalizado:</string>
+    <string name="valor">Valor</string>
+    <string name="guardar">Guardar</string>
+    <!--HeatMap Especifico-->
+    <string name="actividad_ltimos_28_dias">Actividad últimos 28 días</string>
+    <!--Complementos-->
+    <string name="asi_va_tu_progreso">Así va tu progreso:</string>
+    <!--Welcome Screen-->
+    <string name="bienvenido_a_stebby">Bienvenido a StebBy</string>
+    <string name="como_te_llamas">Como te llamas?</string>
+    <string name="continuar">Continuar</string>
+    <!--Settings Screen-->
+    <string name="configuracion">Configuración</string>
+    <string name="peril">Peril</string>
+    <string name="nombre">Nombre</string>
+    <string name="cambiar">Cambiar</string>
+    <string name="tu_nombre">Tu nombre</string>
+    <string name="nombre_guardado_correctamente">Nombre guardado correctamente</string>
+    <string name="idioma">Idioma</string>
 
 </resources>

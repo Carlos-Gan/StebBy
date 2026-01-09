@@ -19,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mogars.stepby.R
 import com.mogars.stepby.data.dao.HabitActivityDao
 import java.time.LocalDate
 
@@ -42,7 +44,7 @@ fun GeneralHeatMap(
     }
 
     Column(Modifier.padding(horizontal = 16.dp)) {
-        Text("Actividad total últimos 28 días", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.actividad_total_ultimos_28_dias), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
 
         LazyVerticalGrid(

@@ -19,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
 import com.mogars.stepby.ui.components.formatHourToAmPm
 import com.mogars.stepby.ui.components.habit_description.HabitHeatMap
@@ -92,7 +94,7 @@ fun HabitDescriptionScreen(
     // =============== ESTADISTICAS DE HORARIO ==================
 
     val hours = activities
-        .mapNotNull {
+        .map {
             try {
                 it.time.substring(0, 2).toInt()
 
@@ -112,7 +114,7 @@ fun HabitDescriptionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hábito ${habit?.name ?: ""}") },
+                title = { Text(stringResource(R.string.habito, habit?.name ?: "")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -130,7 +132,7 @@ fun HabitDescriptionScreen(
                     ) {
                         Icon(
                             FontAwesomeIcons.Solid.Trash,
-                            contentDescription = "Eliminar habito",
+                            contentDescription = stringResource(R.string.eliminar_habito),
                             modifier = Modifier.size(16.dp)
 
                         )
@@ -142,9 +144,9 @@ fun HabitDescriptionScreen(
         if (showDeleteDialog) {
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Eliminar hábito") },
+                title = { Text(stringResource(R.string.eliminar_habito)) },
                 text = {
-                    Text("¿Seguro que quieres eliminar este hábito? Se borrará todo su historial.")
+                    Text(stringResource(R.string.dialog_eliminar_habito))
                 },
                 confirmButton = {
                     androidx.compose.material3.TextButton(
@@ -163,14 +165,14 @@ fun HabitDescriptionScreen(
                             }
                         }
                     ) {
-                        Text("Eliminar")
+                        Text(stringResource(R.string.eliminar))
                     }
                 },
                 dismissButton = {
                     androidx.compose.material3.TextButton(
                         onClick = { showDeleteDialog = false }
                     ) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.cancelar))
                     }
                 }
             )
@@ -183,7 +185,7 @@ fun HabitDescriptionScreen(
 
             // ===== HeatMap =====
             Text(
-                "Historial del hábito",
+                stringResource(R.string.historial_habito),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.titleMediumEmphasized
             )
@@ -199,7 +201,7 @@ fun HabitDescriptionScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                "Resumen",
+                stringResource(R.string.resumen),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.titleMediumEmphasized
             )
@@ -212,9 +214,9 @@ fun HabitDescriptionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Absolute.SpaceBetween
                 ) {
-                    StatCard("Racha actual", "$currentStreak días", icon =  "🔥",Modifier.weight(1f))
+                    StatCard(stringResource(R.string.racha_actual), "$currentStreak días", icon =  "🔥",Modifier.weight(1f))
                     Spacer(Modifier.width(6.dp))
-                    StatCard("Mejor racha", "$bestStreak días", icon= "🏆",Modifier.weight(1f))
+                    StatCard(stringResource(R.string.mejor_racha), "$bestStreak días", icon= "🏆",Modifier.weight(1f))
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -223,19 +225,19 @@ fun HabitDescriptionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    StatCard("Completados", "$totalCompletedDays",icon= "📊", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.completados), "$totalCompletedDays",icon= "📊", Modifier.weight(1f))
                     Spacer(Modifier.width(6.dp))
-                    StatCard("Registros", "$totalRecords", icon= "📅",Modifier.weight(1f))
+                    StatCard(stringResource(R.string.registros), "$totalRecords", icon= "📅",Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("Horarios", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.horarios), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatCard(
-                        "Promedio",
+                        stringResource(R.string.promedio),
                         formatHourToAmPm(averageHora),
                         icon = "⏳",
                         Modifier.weight(1f),
@@ -246,24 +248,11 @@ fun HabitDescriptionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StatCard("Mañana", "$morningCount",icon = "☀️", Modifier.weight(1f))
-                    StatCard("Tarde", "$afternoonCount",icon = "🌇", Modifier.weight(1f))
-                    StatCard("Noche", "$eveningCount",icon = "🌙", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.manana), "$morningCount",icon = "☀️", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.tarde), "$afternoonCount",icon = "🌇", Modifier.weight(1f))
+                    StatCard(stringResource(R.string.noche), "$eveningCount",icon = "🌙", Modifier.weight(1f))
                 }
             }
         }
-    }
-}
-
-// ================== FILA DE ESTADÍSTICA ==================
-
-@Composable
-fun StatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-        Text(value, style = MaterialTheme.typography.bodyLarge)
     }
 }

@@ -32,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
 import com.mogars.stepby.ui.components.CheckCircleButton
 import com.mogars.stepby.ui.components.GoalType
@@ -148,7 +150,11 @@ fun HabitCard(
                     Text(
                         when {
                             habit.hasSubHabits && totalSub > 0 ->
-                                "$completedSubCount / $totalSub subhábitos completados"
+                                stringResource(
+                                    R.string.subhabitos_completados,
+                                    completedSubCount,
+                                    totalSub
+                                )
 
                             habit.goalType == GoalType.AMOUNT ->
                                 "${habit.currentValue} / ${habit.targetValue} ${habit.unit}"

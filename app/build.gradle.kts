@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +12,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        resConfigs("es","en")
         applicationId = "com.mogars.stepby"
         minSdk = 31
         targetSdk = 36
@@ -57,6 +60,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.compose.foundation)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     //Navigation
@@ -74,6 +79,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)  // ADD THIS - Required for Room code generation
-
-
+    //Datastore
+    implementation(libs.androidx.datastore.preferences)
+    //AppCompat
+    implementation (libs.androidx.appcompat)
 }

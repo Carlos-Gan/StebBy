@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
+import com.mogars.stepby.data.UserPreferences
 import com.mogars.stepby.data.entity.HabitEntity
 import com.mogars.stepby.ui.components.home_screen.GeneralHeatMap
 import com.mogars.stepby.ui.components.GreetingHeader
@@ -28,7 +29,6 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -47,7 +47,7 @@ fun HomeScreen(
     val habitDao = database.habitDao()
     val activityDao = database.habitActivityDao()
 
-    val username = "Carlos"
+    val username by UserPreferences.getUsername(context).collectAsState(initial = "")
     val habits = remember { mutableStateListOf<HabitUiModel>() }
     var selectedHabitForModal by remember { mutableStateOf<HabitUiModel?>(null) }
     var showSubHabitModal by remember { mutableStateOf(false) }
@@ -94,13 +94,13 @@ fun HomeScreen(
                 .fillMaxSize()
         ) {
 
-            GreetingHeader(username)
+            GreetingHeader(username.toString())
             GeneralHeatMap(habitActivityDao = activityDao)
 
             Spacer(Modifier.height(12.dp))
 
             Text(
-                "Tus hábitos",
+                stringResource(R.string.tus_habitos),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 style = MaterialTheme.typography.titleLarge
             )
@@ -177,13 +177,13 @@ fun HomeScreen(
                         .weight(1f)
                 ) {
                     Text(
-                        "No tienes hábitos creados.",
+                        stringResource(R.string.no_habitos_creados),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(Modifier.height(15.dp))
                     Text(
-                        "Empieza por crear uno nuevo.",
+                        stringResource(R.string.empieza_crear_nuevo),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

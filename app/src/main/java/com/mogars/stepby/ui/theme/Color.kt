@@ -1,8 +1,9 @@
 package com.mogars.stepby.ui.theme
 
+import androidx.compose.material3.ButtonColors
 import androidx.compose.ui.graphics.Color
 
-val principalColor = Color(0xFFE88408)
+val principalColor: Color = Color(0xFFE88408)
 
 val completeColor = Color(0xFF299B00)
 

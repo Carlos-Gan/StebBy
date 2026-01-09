@@ -26,8 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
 import com.mogars.stepby.data.entity.HabitActivityEntity
 import com.mogars.stepby.ui.components.GoalType
@@ -66,7 +68,7 @@ fun HabitDetailModal(
                 when {
                     habit.hasSubHabits -> {
                         Text(
-                            "Marca tus subhábitos completados:",
+                            stringResource(R.string.marca_tus_subhabitos_completados),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Spacer(Modifier.height(8.dp))
@@ -81,7 +83,7 @@ fun HabitDetailModal(
 
                     habit.goalType == GoalType.AMOUNT -> {
                         Text(
-                            "Cuánto completaste hoy:",
+                            stringResource(R.string.cuanto_completaste_hoy),
                             style = MaterialTheme.typography.bodyMedium
                         )
 
@@ -138,7 +140,7 @@ fun HabitDetailModal(
                             thickness = 1.dp
                         )
                         Text(
-                            "O ingresa un valor personalizado:",
+                            stringResource(R.string.o_ingresa_un_valor_personalizado),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.surfaceVariant
                         )
@@ -153,7 +155,7 @@ fun HabitDetailModal(
                                         1
                                     ).joinToString("")
                             },
-                            label = { Text("Valor") },
+                            label = { Text(stringResource(R.string.valor)) },
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             shape = RoundedCornerShape(12.dp)
@@ -205,12 +207,12 @@ fun HabitDetailModal(
 
                 }
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.guardar))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancelar))
             }
         }
     )
