@@ -61,5 +61,6 @@
     <string name="tu_nombre">Tu nombre</string>
     <string name="nombre_guardado_correctamente">Nombre guardado correctamente</string>
     <string name="idioma">Idioma</string>
+    <string name="idioma_cambiado_a">Idioma cambiado exitosamente</string>
 
 </resources>

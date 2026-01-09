@@ -1,6 +1,5 @@
 package com.mogars.stepby.ui.screens
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -203,7 +202,7 @@ fun SettigsScreen(
                         style = MaterialTheme.typography.labelMedium
                     )
                     Spacer(Modifier.height(8.dp))
-                        LanguageSelector()
+                        LanguageSelector(snackbarHostState)
                 }
             }
         }

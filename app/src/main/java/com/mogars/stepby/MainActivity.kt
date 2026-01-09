@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.mogars.stepby.data.LanguageManager
 import com.mogars.stepby.data.UserPreferences
 import com.mogars.stepby.ui.components.Routes
 import com.mogars.stepby.ui.screens.AddHabitScreen
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LanguageManager.applySavedLanguage(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
