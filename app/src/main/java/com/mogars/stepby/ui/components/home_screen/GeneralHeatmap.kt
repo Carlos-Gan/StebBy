@@ -39,8 +39,9 @@ fun GeneralHeatMap(
     // Crear lista de intensidad total por día
     val days = (0..27).map { offset ->
         val date = startDate.plusDays(offset.toLong()).toString() // yyyy-MM-dd
-        // Sumar intensidades de todos los hábitos ese día
-        activities.filter { it.date == date }.sumOf { it.intensity }
+        // Contar TODAS las actividades de ese día (no solo las de intensidad 4)
+        val activitiesForDay = activities.filter { it.date == date }
+        activitiesForDay.size // Devuelve el total de actividades completadas ese día
     }
 
     Column(Modifier.padding(horizontal = 16.dp)) {

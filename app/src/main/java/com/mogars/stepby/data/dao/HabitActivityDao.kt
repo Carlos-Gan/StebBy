@@ -14,6 +14,10 @@ interface HabitActivityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertActivity(activity: HabitActivityEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertActivity(activity: HabitActivityEntity)
+
+
     // Obtener todas las actividades de un hábito, ordenadas por fecha
     @Query("SELECT * FROM habit_activity WHERE habit_id = :habitId ORDER BY date ASC")
     fun getActivitiesForHabit(habitId: Long): Flow<List<HabitActivityEntity>>
@@ -34,6 +38,4 @@ interface HabitActivityDao {
 
     @Query("DELETE FROM habit_activity WHERE habit_id = :habitId AND date = :date AND subHabitIndex = :index")
     suspend fun deleteSubHabit(habitId: Long, date: String, index: Int)
-
-
 }

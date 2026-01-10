@@ -9,7 +9,8 @@ data class HabitUiModel(
     val currentValue: Float,
     val targetValue: Float,
     val unit: String? = null,
-    val hasSubHabits: Boolean = false
+    val hasSubHabits: Boolean = false,
+    val isCompleted: Boolean = false
     )
 
 data class SubHabitUiModel(

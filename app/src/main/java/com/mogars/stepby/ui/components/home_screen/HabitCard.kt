@@ -56,13 +56,13 @@ fun HabitCard(
     rememberCoroutineScope()
     val subHabitDao = StepByDatabase.getDatabase(context).subHabitDao()
 
-    // Flow de subhábitos si existen
+    // Flow de subhábitos si existen (solo para mostrar progreso visual)
     val subHabitsFlow =
         if (habit.hasSubHabits) remember { subHabitDao.getSubHabitsForHabit(habit.id) } else null
     val subHabits by subHabitsFlow?.collectAsState(initial = emptyList())
         ?: remember { mutableStateOf(emptyList()) }
 
-    // Calcular progreso y completitud
+    // Calcular solo PROGRESO (para la barra visual), no completitud
     val completedSubCount = subHabits.count { it.isCompleted }
     val totalSub = subHabits.size
     val progress = when {
@@ -70,17 +70,12 @@ fun HabitCard(
             0f,
             1f
         )
-
         else -> (habit.currentValue / habit.targetValue).coerceIn(0f, 1f)
     }
     val animatedProgress by animateFloatAsState(progress, label = "progress")
 
-    // Marcar solo si todos los subhábitos están completos
-    val isCompleted = when {
-        habit.goalType == GoalType.AMOUNT -> habit.currentValue >= habit.targetValue
-        habit.hasSubHabits -> habit.currentValue >= habit.targetValue
-        else -> progress >= 1f
-    }
+    // ✅ USAR isCompleted DE LA BD, no calcularlo
+    val isCompleted = habit.isCompleted
 
     val baseColor = MaterialTheme.colorScheme.surfaceVariant
     val progressColor = completeColor
@@ -130,7 +125,6 @@ fun HabitCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // Click solo para abrir detalles
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -176,9 +170,7 @@ fun HabitCard(
                         CheckCircleButton(
                             checked = isCompleted,
                             onClick = {
-                                // Cambiar estado manualmente si es hábito simple
                                 onCheckClick(!isCompleted)
-
                             },
                             habitId = habit.id
                         )

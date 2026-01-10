@@ -85,11 +85,22 @@ fun AddHabitScreen(
                     if (habitName.isNotBlank()) {
                         scope.launch {
                             try {
+                                // Filtrar subhábitos no vacíos
+                                val cleanSubHabits = if (hasSubHabits) {
+                                    subHabits.filter { it.isNotBlank() }
+                                } else {
+                                    emptyList()
+                                }
+
                                 // Crear el hábito
                                 val habitEntity = HabitEntity(
                                     name = habitName,
                                     goalType = goalType,
-                                    targetValue = targetValue.toFloatOrNull() ?: 1f,
+                                    targetValue = if (hasSubHabits) {
+                                        cleanSubHabits.size.toFloat()  // ✅ Cantidad de subhábitos como target
+                                    } else {
+                                        targetValue.toFloatOrNull() ?: 1f
+                                    },
                                     unit = unit.ifBlank { null },
                                     hasSubHabits = hasSubHabits
                                 )
@@ -98,7 +109,6 @@ fun AddHabitScreen(
 
                                 // Si tiene subhábitos, insertarlos
                                 if (hasSubHabits && habitId > 0) {
-                                    val cleanSubHabits = subHabits.filter { it.isNotBlank() }
                                     val subHabitEntities = cleanSubHabits.map { subHabitName ->
                                         SubHabitEntity(
                                             habitId = habitId,
@@ -157,7 +167,10 @@ fun AddHabitScreen(
             )
 
             // 🎯 Tipo de objetivo
-            Text(stringResource(R.string.tipo_de_habito), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.tipo_de_habito),
+                style = MaterialTheme.typography.titleMedium
+            )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 

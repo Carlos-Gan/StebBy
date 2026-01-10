@@ -31,4 +31,57 @@ interface HabitDao {
 
     @Delete
     suspend fun deleteHabit(habit: HabitEntity)
+
+    /**
+     * Actualiza el estado de completitud del hábito basado en:
+     * - Si tiene subhábitos: completo si TODOS están marcados
+     * - Si es AMOUNT: completo si currentValue >= targetValue
+     * - Si es CHECK: completo si currentValue >= targetValue
+     */
+    @Transaction
+    suspend fun updateCompletionStatus(habitId: Long) {
+        val habit = getHabitByIdSuspend(habitId) ?: return
+
+        val isCompleted = when {
+            habit.hasSubHabits -> {
+                val subHabits = getSubHabits(habitId)
+                val totalCount = subHabits.size
+                val completedCount = subHabits.count { it.isCompleted }
+                totalCount > 0 && completedCount == totalCount
+            }
+            else -> habit.currentValue >= habit.targetValue
+        }
+
+        updateHabit(habit.copy(isCompleted = isCompleted))
+    }
+
+    //Versión suspendible de getHabitById para usar dentro de transacciones
+    @Query("SELECT * FROM habits WHERE id = :id LIMIT 1")
+    suspend fun getHabitByIdSuspend(id: Long): HabitEntity?
+
+    //Actualiza solo el currentValue y luego recalcula completitud
+    suspend fun updateHabitValue(habitId: Long, newValue: Float) {
+        val habit = getHabitByIdSuspend(habitId) ?: return
+        updateHabit(habit.copy(currentValue = newValue))
+        updateCompletionStatus(habitId)
+    }
+
+    //Marca todos los subhábitos como completados y actualiza el hábito padre
+    @Transaction
+    suspend fun completeAllSubHabits(habitId: Long) {
+        val subHabits = getSubHabits(habitId)
+        subHabits.forEach { subHabit ->
+            updateSubHabit(subHabit.copy(isCompleted = true))
+        }
+        updateCompletionStatus(habitId)
+    }
+     //Desmarca todos los subhábitos y actualiza el hábito padre
+    @Transaction
+    suspend fun resetSubHabits(habitId: Long) {
+        val subHabits = getSubHabits(habitId)
+        subHabits.forEach { subHabit ->
+            updateSubHabit(subHabit.copy(isCompleted = false))
+        }
+        updateCompletionStatus(habitId)
+    }
 }

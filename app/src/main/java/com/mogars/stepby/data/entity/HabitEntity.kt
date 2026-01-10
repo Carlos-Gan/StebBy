@@ -20,5 +20,7 @@ data class HabitEntity(
     @ColumnInfo(name = "unit")
     val unit: String?,
     @ColumnInfo(name = "has_sub_habits")
-    val hasSubHabits: Boolean
+    val hasSubHabits: Boolean,
+    @ColumnInfo(name = "is_completed")
+    val isCompleted: Boolean = false
 )

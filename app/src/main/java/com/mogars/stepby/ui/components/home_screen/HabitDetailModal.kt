@@ -52,6 +52,7 @@ fun HabitDetailModal(
     val scope = rememberCoroutineScope()
     val subHabitDao = StepByDatabase.getDatabase(context).subHabitDao()
     var inputValue by remember { mutableStateOf(habit.currentValue.toString()) }
+    var subHabitCompletedCount by remember { mutableStateOf(0.0f) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -76,6 +77,7 @@ fun HabitDetailModal(
                             habitId = habit.id,
                             subHabitDao = subHabitDao,
                             onChange = { completedCount ->
+                                subHabitCompletedCount = completedCount
                                 onValueChange(completedCount)
                             }
                         )
@@ -131,9 +133,7 @@ fun HabitDetailModal(
                                     }
                                 }
                             }
-
                         }
-
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -161,50 +161,53 @@ fun HabitDetailModal(
                             shape = RoundedCornerShape(12.dp)
                         )
                     }
-
                 }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    val valueFloat = inputValue.toFloatOrNull() ?: habit.currentValue
-                    val clampedValue = valueFloat.coerceIn(0f, habit.targetValue)
-
                     val now = LocalDateTime.now()
                     val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+                    val time = now.toLocalTime().format(DateTimeFormatter.ISO_TIME)
 
-                    // Guardar intensidad solo si llega al objetivo
-                    if (clampedValue >= habit.targetValue) {
+                    scope.launch(Dispatchers.IO) {
+                        val db = StepByDatabase.getDatabase(context)
+                        val habitDao = db.habitDao()
+                        val activityDao = db.habitActivityDao()
 
-                        val intensity =
-                            ((clampedValue / habit.targetValue) * 4).toInt().coerceIn(0, 4)
+                        // 1️⃣ Actualizar el valor del hábito
+                        val newValue = inputValue.toFloatOrNull() ?: 0f
+                        habitDao.updateHabitValue(habit.id, newValue)
 
-                        val time = now.toLocalTime().format(DateTimeFormatter.ISO_TIME)
+                        // 2️⃣ Calcular si está completo
+                        val progress = when {
+                            habit.hasSubHabits -> subHabitCompletedCount / habit.targetValue
+                            else -> newValue / habit.targetValue
+                        }
+                        val isComplete = progress >= 1f
 
-                        scope.launch(Dispatchers.IO) {
-                            StepByDatabase.getDatabase(context)
-                                .habitActivityDao()
-                                .insertActivity(
-                                    HabitActivityEntity(
-                                        habitId = habit.id,
-                                        date = today,
-                                        time = time,
-                                        intensity = intensity
-                                    )
+                        // 3️⃣ Guardar o borrar actividad según completitud
+                        if (isComplete) {
+                            // ✅ Guardar si está completo
+                            activityDao.upsertActivity(
+                                HabitActivityEntity(
+                                    habitId = habit.id,
+                                    date = today,
+                                    time = time,
+                                    intensity = 4
                                 )
+                            )
+                        } else {
+                            // 🗑️ Borrar si NO está completo
+                            activityDao.deleteActivitiesForHabitForDay(habit.id, today)
                         }
-                    } else {
-                        scope.launch(Dispatchers.IO) {
-                            StepByDatabase.getDatabase(context)
-                                .habitActivityDao()
-                                .deleteActivitiesForHabitForDay(habit.id, today)
-                        }
+
+                        // 4️⃣ Actualizar estado de completitud
+                        habitDao.updateCompletionStatus(habit.id)
                     }
 
-                    onValueChange(clampedValue)
                     onDismiss()
-
                 }
             ) {
                 Text(stringResource(R.string.guardar))

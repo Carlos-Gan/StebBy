@@ -2,7 +2,6 @@ package com.mogars.stepby.ui.components
 
 import SubHabitDao
 import android.content.Context
-import android.graphics.drawable.shapes.Shape
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -13,6 +12,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +20,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,46 +30,33 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.SweepGradientShader
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.room.TypeConverter
 import com.mogars.stepby.R
@@ -75,15 +64,16 @@ import com.mogars.stepby.data.StepByDatabase
 import com.mogars.stepby.data.entity.HabitActivityEntity
 import com.mogars.stepby.ui.theme.completeColor
 import com.mogars.stepby.ui.theme.principalColor
+import com.mogars.stepby.ui.theme.secundarioColor
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Check
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlin.time.Duration
 
 enum class GoalType {
     CHECK,      // Marcar completado
@@ -101,32 +91,35 @@ class GoalTypeConverter {
 // ---------------------- VIBRATION ----------------------
 
 fun vibrate(context: Context, millis: Long = 30) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val vibratorManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         // Android 12+
-        val vibratorManager =
-            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-        val vibrator = vibratorManager.defaultVibrator
+        context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+    } else {
+        null
+    }
 
-        vibrator.vibrate(
+    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        vibratorManager?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    }
+
+    vibrator?.let {
+        val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             VibrationEffect.createOneShot(
                 millis,
                 VibrationEffect.DEFAULT_AMPLITUDE
             )
-        )
-    } else {
-        // Android 11 o menos
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        } else {
+            null
+        }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(
-                VibrationEffect.createOneShot(
-                    millis,
-                    VibrationEffect.DEFAULT_AMPLITUDE
-                )
-            )
+        if (effect != null) {
+            it.vibrate(effect)
         } else {
             @Suppress("DEPRECATION")
-            vibrator.vibrate(millis)
+            it.vibrate(millis)
         }
     }
 }
@@ -190,12 +183,13 @@ fun CheckCircleButton(
                 val time = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
 
 
-                scope.launch {
+                scope.launch(Dispatchers.IO) {
                     val db = StepByDatabase.getDatabase(context)
+                    val habitdao = db.habitDao()
 
                     if (!checked) {
                         // Se marcó → Insertar intensidad 4
-                        db.habitActivityDao().insertActivity(
+                        db.habitActivityDao().upsertActivity(
                             HabitActivityEntity(
                                 habitId = habitId,
                                 date = date,
@@ -207,6 +201,8 @@ fun CheckCircleButton(
                         // Se desmarcó → Borrar actividad
                         db.habitActivityDao().deleteActivitiesForHabitForDay(habitId, date)
                     }
+
+                    habitdao.updateCompletionStatus(habitId)
                 }
             },
         contentAlignment = Alignment.Center
@@ -222,7 +218,6 @@ fun CheckCircleButton(
     }
 }
 
-// ---------------------- SUBHABIT LIST ----------------------
 @Composable
 fun SubHabitList(
     habitId: Long,
@@ -243,28 +238,43 @@ fun SubHabitList(
                 Checkbox(
                     checked = sub.isCompleted,
                     onCheckedChange = { checked ->
-                        scope.launch {
+                        scope.launch(Dispatchers.IO) {
+                            // 1️⃣ Actualizar el subhábito
                             subHabitDao.update(sub.copy(isCompleted = checked))
+
+                            // 2️⃣ Calcular el nuevo conteo DESPUÉS de actualizar
                             val updatedCompletedCount = subHabits.count { it.isCompleted } +
-                                    if (checked) 1 else 0
+                                    if (checked) 1 else -1
                             onChange(updatedCompletedCount.toFloat())
 
-                            // Guardar intensidad solo si todos los subhábitos completados
+                            val db = StepByDatabase.getDatabase(context)
+                            val habitDao = db.habitDao()
+                            val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                            val time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
+
+                            // ✅ ACTUALIZAR currentValue del hábito padre
+                            habitDao.updateHabitValue(habitId, updatedCompletedCount.toFloat())
+
+                            // 3️⃣ Guardar o borrar actividad según si TODOS están completos
                             if (updatedCompletedCount == subHabits.size && subHabits.isNotEmpty()) {
-                                val today = LocalDate.now()
-                                    .format(DateTimeFormatter.ISO_DATE)
-                                StepByDatabase.getDatabase(context)
-                                    .habitActivityDao()
-                                    .insertActivity(
+                                // ✅ TODOS los subhábitos completados → Guardar actividad
+                                db.habitActivityDao()
+                                    .upsertActivity(
                                         HabitActivityEntity(
                                             habitId = habitId,
                                             date = today,
                                             intensity = 4,
-                                            time = LocalTime.now()
-                                                .format(DateTimeFormatter.ofPattern("HH:mm"))
+                                            time = time
                                         )
                                     )
+                            } else {
+                                // ❌ NO están todos completos → Borrar actividad
+                                db.habitActivityDao()
+                                    .deleteActivitiesForHabitForDay(habitId, today)
                             }
+
+                            // 4️⃣ Actualizar estado de completitud del hábito padre
+                            habitDao.updateCompletionStatus(habitId)
                         }
                     }
                 )
@@ -313,79 +323,3 @@ fun formatHourToAmPm(hour: Double): String {
 
     return String.format("%d:%02d %s", hour12, minutes, amPm)
 }
-
-// ---------------------- ANIMATED BORDER ----------------------
-@Composable
-fun AnimatedBorderTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    borderWidth: Dp = 2.dp,
-    gradient: Brush = Brush.sweepGradient(
-        listOf(
-            Color.Cyan,
-            Color.Magenta,
-            Color.Yellow,
-            Color.Cyan
-        )
-    ),
-    animationDuration: Int = 3000,
-    singleLine: Boolean = false,
-    maxLines: Int = Int.MAX_VALUE
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "Infinite Color Animation")
-    val degrees by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = animationDuration, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "Infinite Colors"
-    )
-
-    Surface(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(borderWidth)
-                .drawWithContent {
-                    rotate(degrees = degrees) {
-                        drawCircle(
-                            brush = gradient,
-                            radius = size.width,
-                            blendMode = BlendMode.SrcIn,
-                        )
-                    }
-                    drawContent()
-                },
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.headlineSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    ),
-                    singleLine = singleLine,
-                    maxLines = maxLines,
-                    decorationBox = { innerTextField ->
-                        innerTextField()
-                    }
-                )
-            }
-        }
-    }
-}
-

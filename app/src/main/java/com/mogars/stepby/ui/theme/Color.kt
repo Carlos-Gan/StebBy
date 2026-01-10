@@ -5,6 +5,10 @@ import androidx.compose.ui.graphics.Color
 
 val principalColor: Color = Color(0xFFE88408)
 
+val secundarioColor: Color = Color(0xFF000000)
+
+val terciarioColor: Color = Color(0xFF000000)
+
 val completeColor = Color(0xFF299B00)
 
 val grisLetras = Color(0xFF575757)

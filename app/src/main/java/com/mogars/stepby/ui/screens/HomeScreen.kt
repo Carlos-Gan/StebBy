@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.mogars.stepby.R
 import com.mogars.stepby.data.StepByDatabase
@@ -24,6 +25,8 @@ import com.mogars.stepby.ui.components.GreetingHeader
 import com.mogars.stepby.ui.components.home_screen.HabitCard
 import com.mogars.stepby.ui.components.home_screen.HabitDetailModal
 import com.mogars.stepby.ui.models.HabitUiModel
+import com.mogars.stepby.view_models.HabitViewModel
+import com.mogars.stepby.view_models.HabitViewModelFactory
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.*
@@ -44,32 +47,16 @@ fun HomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val database = StepByDatabase.getDatabase(context)
-    val habitDao = database.habitDao()
-    val activityDao = database.habitActivityDao()
+
+    // ✅ Usar ViewModel
+    val viewModel: HabitViewModel = viewModel(
+        factory = HabitViewModelFactory(database)
+    )
 
     val username by UserPreferences.getUsername(context).collectAsState(initial = "")
-    val habits = remember { mutableStateListOf<HabitUiModel>() }
+    val habits by viewModel.allHabits.collectAsState(initial = emptyList())
     var selectedHabitForModal by remember { mutableStateOf<HabitUiModel?>(null) }
     var showSubHabitModal by remember { mutableStateOf(false) }
-
-    // 🔄 Cargar hábitos desde BD
-    LaunchedEffect(Unit) {
-        habitDao.getAllHabits().collect { habitEntities ->
-            val habitUiModels = habitEntities.map { entity ->
-                HabitUiModel(
-                    id = entity.id,
-                    name = entity.name,
-                    goalType = entity.goalType,
-                    currentValue = entity.currentValue,
-                    targetValue = entity.targetValue,
-                    unit = entity.unit,
-                    hasSubHabits = entity.hasSubHabits
-                )
-            }
-            habits.clear()
-            habits.addAll(habitUiModels)
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -95,7 +82,7 @@ fun HomeScreen(
         ) {
 
             GreetingHeader(username.toString())
-            GeneralHeatMap(habitActivityDao = activityDao)
+            GeneralHeatMap(habitActivityDao = database.habitActivityDao())
 
             Spacer(Modifier.height(12.dp))
 
@@ -120,16 +107,16 @@ fun HomeScreen(
                                 // 🔹 Actualizar currentValue según check
                                 val newValue =
                                     if (habit.currentValue >= habit.targetValue) 0f else habit.targetValue
-                                habits[index] = habit.copy(currentValue = newValue)
-
-                                val now = LocalDateTime.now()
-                                val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
-                                val time = now.toLocalTime()
-                                    .format(DateTimeFormatter.ofPattern("HH:mm"))
 
                                 scope.launch(Dispatchers.IO) {
+                                    val now = LocalDateTime.now()
+                                    val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
+                                    val time = now.toLocalTime()
+                                        .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+                                    // Guardar o borrar actividad
                                     if (newValue >= habit.targetValue) {
-                                        activityDao.insertActivity(
+                                        database.habitActivityDao().upsertActivity(
                                             HabitActivityEntity(
                                                 habitId = habit.id,
                                                 date = today,
@@ -138,20 +125,11 @@ fun HomeScreen(
                                             )
                                         )
                                     } else {
-                                        activityDao.deleteActivitiesForHabitForDay(habit.id, today)
+                                        database.habitActivityDao().deleteActivitiesForHabitForDay(habit.id, today)
                                     }
-                                    // 🔹 Guardar en HabitEntity
-                                    habitDao.updateHabit(
-                                        HabitEntity(
-                                            id = habit.id,
-                                            name = habit.name,
-                                            goalType = habit.goalType,
-                                            targetValue = habit.targetValue,
-                                            currentValue = newValue,
-                                            unit = habit.unit,
-                                            hasSubHabits = habit.hasSubHabits
-                                        )
-                                    )
+
+                                    // Actualizar valor y completitud
+                                    viewModel.updateHabitValue(habit.id, newValue)
                                 }
                             },
                             onOpen = {
@@ -160,7 +138,6 @@ fun HomeScreen(
                             },
                             onOpenLongPress = { habit ->
                                 navController.navigate("habit_description/${habit.id}")
-
                             }
                         )
                     }
@@ -204,51 +181,13 @@ fun HomeScreen(
             onValueChange = { newValue ->
                 val habitId = selectedHabitForModal?.id ?: return@HabitDetailModal
 
-                val index = habits.indexOfFirst { it.id == habitId }
-                if (index >= 0) {
-
-                    val updatedHabit = habits[index].copy(currentValue = newValue)
-                    habits[index] = updatedHabit
-
-                    val now = LocalDateTime.now()
-                    val today = now.toLocalDate().format(DateTimeFormatter.ISO_DATE)
-                    val time = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
-
-
-                    scope.launch(Dispatchers.IO) {
-                        try {
-                            val realHabitId = updatedHabit.id
-
-                            if (newValue >= updatedHabit.targetValue) {
-                                activityDao.insertActivity(
-                                    HabitActivityEntity(
-                                        habitId = realHabitId,
-                                        date = today,
-                                        intensity = 4,
-                                        time = time
-                                    )
-                                )
-                            } else {
-                                activityDao.deleteActivitiesForHabitForDay(realHabitId, today)
-                            }
-
-                            habitDao.updateHabit(
-                                HabitEntity(
-                                    id = realHabitId,
-                                    name = updatedHabit.name,
-                                    goalType = updatedHabit.goalType,
-                                    targetValue = updatedHabit.targetValue,
-                                    currentValue = newValue,
-                                    unit = updatedHabit.unit ?: "",
-                                    hasSubHabits = updatedHabit.hasSubHabits
-                                )
-                            )
-                        } catch (e: Exception) {
-                            Log.e("HomeScreen", "Error al guardar: ${e.message}", e)
-                        }
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        // Actualizar valor
+                        viewModel.updateHabitValue(habitId, newValue)
+                    } catch (e: Exception) {
+                        Log.e("HomeScreen", "Error al guardar: ${e.message}", e)
                     }
-
-
                 }
             }
         )
